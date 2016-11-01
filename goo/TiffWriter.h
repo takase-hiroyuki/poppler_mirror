@@ -38,6 +38,7 @@ public:
   ~TiffWriter();
 
   void setCompressionString(const char *compressionStringArg);
+  void setAppendPages();
 
   bool init(FILE *openedFile, int width, int height, int hDPI, int vDPI);
 

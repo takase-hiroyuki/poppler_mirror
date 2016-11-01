@@ -336,21 +336,31 @@ SplashColorPtr SplashBitmap::takeData() {
   return data2;
 }
 
-SplashError SplashBitmap::writeImgFile(SplashImageFileFormat format, char *fileName, int hDPI, int vDPI, const char *compressionString) {
+SplashError SplashBitmap::writeImgFile(SplashImageFileFormat format, char *fileName, int hDPI, int vDPI, const char *compressionString, int appendPages) {
   FILE *f;
   SplashError e;
 
-  if (!(f = fopen(fileName, "wb"))) {
+  switch (format) {
+    #ifdef ENABLE_LIBTIFF
+    case splashFormatTiff:
+      break;
+    #endif
+    default:
+      appendPages = 0;
+      break;
+  }
+
+  if (!(f = fopen(fileName, appendPages ? "r+b" : "wb"))) {
     return splashErrOpenFile;
   }
 
-  e = writeImgFile(format, f, hDPI, vDPI, compressionString);
+  e = writeImgFile(format, f, hDPI, vDPI, compressionString, appendPages);
   
   fclose(f);
   return e;
 }
 
-SplashError SplashBitmap::writeImgFile(SplashImageFileFormat format, FILE *f, int hDPI, int vDPI, const char *compressionString) {
+SplashError SplashBitmap::writeImgFile(SplashImageFileFormat format, FILE *f, int hDPI, int vDPI, const char *compressionString, int appendPages) {
   ImgWriter *writer;
 	SplashError e;
   
@@ -397,6 +407,9 @@ SplashError SplashBitmap::writeImgFile(SplashImageFileFormat format, FILE *f, in
       }
       if (writer) {
         ((TiffWriter *)writer)->setCompressionString(compressionString);
+        if (appendPages) {
+          ((TiffWriter *)writer)->setAppendPages();
+        }
       }
       break;
     #endif

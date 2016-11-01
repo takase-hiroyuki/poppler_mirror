@@ -87,6 +87,7 @@ static GBool png = gFalse;
 static GBool jpeg = gFalse;
 static GBool jpegcmyk = gFalse;
 static GBool tiff = gFalse;
+static GBool singleTiff = gFalse;
 #if SPLASH_CMYK
 static GBool overprint = gFalse;
 #endif
@@ -168,6 +169,8 @@ static const ArgDesc argDesc[] = {
 #if ENABLE_LIBTIFF
   {"-tiff",    argFlag,     &tiff,           0,
    "generate a TIFF file"},
+  {"-singletiff",    argFlag,     &singleTiff,           0,
+   "generate a single TIFF file"},
   {"-tiffcompression", argString, TiffCompressionStr, sizeof(TiffCompressionStr),
    "set TIFF compression: none, packbits, jpeg, lzw, deflate"},
 #endif
@@ -212,7 +215,7 @@ static void savePageSlice(PDFDoc *doc,
                    SplashOutputDev *splashOut, 
                    int pg, int x, int y, int w, int h, 
                    double pg_w, double pg_h, 
-                   char *ppmFile) {
+                   char *ppmFile, int firstOutputPage) {
   if (w == 0) w = (int)ceil(pg_w);
   if (h == 0) h = (int)ceil(pg_h);
   w = (x+w > pg_w ? (int)ceil(pg_w-x) : w);
@@ -234,7 +237,7 @@ static void savePageSlice(PDFDoc *doc,
     } else if (jpegcmyk) {
       bitmap->writeImgFile(splashFormatJpegCMYK, ppmFile, x_resolution, y_resolution);
     } else if (tiff) {
-      bitmap->writeImgFile(splashFormatTiff, ppmFile, x_resolution, y_resolution, TiffCompressionStr);
+      bitmap->writeImgFile(splashFormatTiff, ppmFile, x_resolution, y_resolution, TiffCompressionStr, (!firstOutputPage && singleTiff) ? 1 : 0);
     } else {
       bitmap->writePNMFile(ppmFile);
     }
@@ -248,7 +251,7 @@ static void savePageSlice(PDFDoc *doc,
     } else if (jpeg) {
       bitmap->writeImgFile(splashFormatJpeg, stdout, x_resolution, y_resolution);
     } else if (tiff) {
-      bitmap->writeImgFile(splashFormatTiff, stdout, x_resolution, y_resolution, TiffCompressionStr);
+      bitmap->writeImgFile(splashFormatTiff, stdout, x_resolution, y_resolution, TiffCompressionStr, (!firstOutputPage && singleTiff) ? 1 : 0);
     } else {
       bitmap->writePNMFile(stdout);
     }
@@ -296,7 +299,7 @@ static void processPageJobs() {
     splashOut->setVectorAntialias(vectorAntialias);
     splashOut->startDoc(pageJob.doc);
     
-    savePageSlice(pageJob.doc, splashOut, pageJob.pg, x, y, w, h, pageJob.pg_w, pageJob.pg_h, pageJob.ppmFile);
+    savePageSlice(pageJob.doc, splashOut, pageJob.pg, x, y, w, h, pageJob.pg_w, pageJob.pg_h, pageJob.ppmFile, 1);
     
     delete splashOut;
     delete[] pageJob.ppmFile;
@@ -517,7 +520,7 @@ int main(int argc, char *argv[]) {
     }
     if (ppmRoot != NULL) {
       const char *ext = png ? "png" : (jpeg || jpegcmyk) ? "jpg" : tiff ? "tif" : mono ? "pbm" : gray ? "pgm" : "ppm";
-      if (singleFile) {
+      if (singleFile || singleTiff) {
         ppmFile = new char[strlen(ppmRoot) + 1 + strlen(ext) + 1];
         sprintf(ppmFile, "%s.%s", ppmRoot, ext);
       } else {
@@ -529,7 +532,7 @@ int main(int argc, char *argv[]) {
     }
 #ifndef UTILS_USE_PTHREADS
     // process job in main thread
-    savePageSlice(doc, splashOut, pg, x, y, w, h, pg_w, pg_h, ppmFile);
+    savePageSlice(doc, splashOut, pg, x, y, w, h, pg_w, pg_h, ppmFile, pg == firstPage);
     
     delete[] ppmFile;
 #else

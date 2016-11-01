@@ -72,8 +72,8 @@ public:
   SplashError writePNMFile(FILE *f);
   SplashError writeAlphaPGMFile(char *fileName);
   
-  SplashError writeImgFile(SplashImageFileFormat format, char *fileName, int hDPI, int vDPI, const char *compressionString = "");
-  SplashError writeImgFile(SplashImageFileFormat format, FILE *f, int hDPI, int vDPI, const char *compressionString = "");
+  SplashError writeImgFile(SplashImageFileFormat format, char *fileName, int hDPI, int vDPI, const char *compressionString = "", int appendPages = 0);
+  SplashError writeImgFile(SplashImageFileFormat format, FILE *f, int hDPI, int vDPI, const char *compressionString = "", int appendPages = 0);
   SplashError writeImgFile(ImgWriter *writer, FILE *f, int hDPI, int vDPI);
 
   enum ConversionMode

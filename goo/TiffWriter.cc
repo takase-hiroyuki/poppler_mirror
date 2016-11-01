@@ -32,6 +32,7 @@ struct TiffWriterPrivate {
   int curRow;				// number of rows written
   const char *compressionString;	// compression type
   TiffWriter::Format format;		// format of image data
+  int appendPages;					// non zero if append
 };
 
 TiffWriter::~TiffWriter()
@@ -47,6 +48,7 @@ TiffWriter::TiffWriter(Format formatA)
   priv->curRow = 0;
   priv->compressionString = NULL;
   priv->format = formatA;
+  priv->appendPages = 0;
 }
 
 // Set the compression type
@@ -54,6 +56,13 @@ TiffWriter::TiffWriter(Format formatA)
 void TiffWriter::setCompressionString(const char *compressionStringArg)
 {
   priv->compressionString = compressionStringArg;
+}
+
+// Set appended on
+
+void TiffWriter::setAppendPages()
+{
+  priv->appendPages = 1;
 }
 
 // Write a TIFF file.
@@ -158,9 +167,9 @@ bool TiffWriter::init(FILE *openedFile, int width, int height, int hDPI, int vDP
 
 #ifdef _WIN32
   //Convert C Library handle to Win32 Handle
-  priv->f = TIFFFdOpen(_get_osfhandle(fileno(openedFile)), "-", "w");
+  priv->f = TIFFFdOpen(_get_osfhandle(fileno(openedFile)), "-", priv->appendPages ? "a" : "w");
 #else
-  priv->f = TIFFFdOpen(fileno(openedFile), "-", "w");
+  priv->f = TIFFFdOpen(fileno(openedFile), "-", priv->appendPages ? "a" : "w");
 #endif
 
 
