@@ -28,6 +28,7 @@ public:
 
   virtual bool close() = 0;
   virtual bool supportCMYK() { return false; }
+  virtual bool supportNativeMonoRowData() { return false; }
 };
 
 #endif

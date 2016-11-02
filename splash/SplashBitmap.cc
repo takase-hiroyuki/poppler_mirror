@@ -757,41 +757,75 @@ SplashError SplashBitmap::writeImgFile(ImgWriter *writer, FILE *f, int hDPI, int
     
     case splashModeMono8:
     {
-      unsigned char *row = new unsigned char[3 * width];
-      for (int y = 0; y < height; y++) {
-        // Convert into a PNG row
-        for (int x = 0; x < width; x++) {
-          row[3*x] = data[y * rowSize + x];
-          row[3*x+1] = data[y * rowSize + x];
-          row[3*x+2] = data[y * rowSize + x];
-        }
+      if (writer->supportNativeMonoRowData()) {
+        SplashColorPtr row;
+        unsigned char **row_pointers = new unsigned char*[height];
+        row = data;
 
-        if (!writer->writeRow(&row)) {
-          delete[] row;
+        for (int y = 0; y < height; ++y) {
+          row_pointers[y] = row;
+          row += rowSize;
+        }
+        if (!writer->writePointers(row_pointers, height)) {
+          delete[] row_pointers;
           return splashErrGeneric;
         }
+        delete[] row_pointers;
       }
-      delete[] row;
+      else {
+        unsigned char *row = new unsigned char[3 * width];
+        for (int y = 0; y < height; y++) {
+          // Convert into a PNG row
+          for (int x = 0; x < width; x++) {
+            row[3*x] = data[y * rowSize + x];
+            row[3*x+1] = data[y * rowSize + x];
+            row[3*x+2] = data[y * rowSize + x];
+          }
+
+          if (!writer->writeRow(&row)) {
+            delete[] row;
+            return splashErrGeneric;
+          }
+        }
+        delete[] row;
+      }
     }
     break;
     
     case splashModeMono1:
     {
-      unsigned char *row = new unsigned char[3 * width];
-      for (int y = 0; y < height; y++) {
-        // Convert into a PNG row
-        for (int x = 0; x < width; x++) {
-          getPixel(x, y, &row[3*x]);
-          row[3*x+1] = row[3*x];
-          row[3*x+2] = row[3*x];
-        }
+      if (writer->supportNativeMonoRowData()) {
+        SplashColorPtr row;
+        unsigned char **row_pointers = new unsigned char*[height];
+        row = data;
 
-        if (!writer->writeRow(&row)) {
-          delete[] row;
+        for (int y = 0; y < height; ++y) {
+          row_pointers[y] = row;
+          row += rowSize;
+        }
+        if (!writer->writePointers(row_pointers, height)) {
+          delete[] row_pointers;
           return splashErrGeneric;
         }
+        delete[] row_pointers;
       }
-      delete[] row;
+      else {
+        unsigned char *row = new unsigned char[3 * width];
+        for (int y = 0; y < height; y++) {
+          // Convert into a PNG row
+          for (int x = 0; x < width; x++) {
+            getPixel(x, y, &row[3*x]);
+            row[3*x+1] = row[3*x];
+            row[3*x+2] = row[3*x];
+          }
+
+          if (!writer->writeRow(&row)) {
+            delete[] row;
+            return splashErrGeneric;
+          }
+        }
+        delete[] row;
+      }
     }
     break;
     

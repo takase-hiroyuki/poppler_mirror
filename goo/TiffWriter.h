@@ -46,6 +46,7 @@ public:
   bool writeRow(unsigned char **rowData);
 
   bool supportCMYK() { return true; }
+  bool supportNativeMonoRowData() { return true; }
 
   bool close();
 
