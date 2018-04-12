@@ -544,6 +544,12 @@ static const char *findSubstituteName(GfxFont *font, const std::unordered_map<st
       if (fontFiles.count(DEFAULT_CID_FONT_MSWIN) != 0)
         return DEFAULT_CID_FONT_MSWIN;
     } 
+
+    const char* defaultSubstituteFont = getenv("DEFAULT_SUBSTITUTE_FONT");
+    if (defaultSubstituteFont != NULL) {
+        return defaultSubstituteFont;
+    }
+
     return DEFAULT_SUBSTITUTE_FONT;
 }
 
