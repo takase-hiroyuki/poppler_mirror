@@ -7,6 +7,8 @@ set(common_libs
   poppler
 )
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+
 if (ENABLE_SPLASH)
   # pdftoppm
   set(pdftoppm_SOURCES ${common_srcs}
@@ -34,7 +36,7 @@ if (HAVE_CAIRO)
   )
   add_definitions(${CAIRO_CFLAGS})
   add_executable(pdftocairo ${pdftocairo_SOURCES})
-  target_link_libraries(pdftocairo ${CAIRO_LIBRARIES} ${FREETYPE_LIBRARIES} ${common_libs})
+  target_link_libraries(pdftocairo ${CAIRO_LIBRARIES} ${FREETYPE_LIBRARIES} ${common_libs} pixman-1 fontconfig msimg32 expat)
   if(LCMS_FOUND)
     target_link_libraries(pdftocairo ${LCMS_LIBRARIES})
   endif()
@@ -75,7 +77,7 @@ set(pdfimages_SOURCES ${common_srcs}
   JSInfo.h
 )
 add_executable(pdfimages ${pdfimages_SOURCES})
-target_link_libraries(pdfimages ${common_libs})
+target_link_libraries(pdfimages ${common_libs} libjpeg.a)
 install(TARGETS pdfimages DESTINATION bin)
 install(FILES pdfimages.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
