@@ -544,6 +544,12 @@ static const char *findSubstituteName(GfxFont *font, GooHash *fontFiles,
       if (fontFiles->lookup(DEFAULT_CID_FONT_MSWIN))
         return DEFAULT_CID_FONT_MSWIN;
     } 
+
+    const char* defaultSubstituteFont = getenv("DEFAULT_SUBSTITUTE_FONT");
+    if (defaultSubstituteFont != NULL) {
+        return defaultSubstituteFont;
+    }
+
     return DEFAULT_SUBSTITUTE_FONT;
 }
 
