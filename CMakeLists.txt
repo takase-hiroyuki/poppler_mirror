@@ -480,7 +480,22 @@ endif()
 if(TIFF_FOUND)
   set(poppler_LIBS ${poppler_LIBS} ${TIFF_LIBRARIES})
 endif()
-set(poppler_LIBS ${poppler_LIBS} lzma bz2 harfbuzz graphite2 glib-2.0 winmm libgettextlib.a libintl.a ws2_32 libiconv.a libopenjp2.notdll.a libcurl.notdll.a libgraphite2.notdll.a)
+set(poppler_LIBS ${poppler_LIBS} 
+  lzma 
+  bz2 
+  harfbuzz 
+  graphite2 
+  glib-2.0 
+  winmm 
+  libgettextlib.a 
+  libintl.a 
+  ws2_32 
+  libiconv.a 
+  libopenjp2.notdll.a 
+  libcurl.notdll.a 
+  libgraphite2.notdll.a
+  libjpeg.a
+  )
 
 if(MSVC)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)

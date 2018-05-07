@@ -7,13 +7,10 @@ cmake -G "MSYS Makefiles"  -D BUILD_CPP_TESTS:BOOL=OFF -D BUILD_GTK_TESTS:BOOL=O
 make
 ```
 
-環境:
-```
-$ uname -a
-MINGW32_NT-10.0-WOW DD36 2.6.0(0.304/5/3) 2016-09-07 21:23 i686 Msys
-```
+環境構築:
+- https://www.msys2.org/ にて `msys2-i686-20161025.exe` をダウンロードしてセットアップします。
 
-構築:
+MinGW 環境構築:
 ```
 $ pacman -S mingw32/mingw-w64-i686-freetype
 $ pacman -S mingw32/mingw-w64-i686-gcc
@@ -23,6 +20,13 @@ $ pacman -S mingw32/mingw-w64-i686-libjpeg-turbo
 $ pacman -S mingw32/mingw-w64-i686-openjpeg2
 $ pacman -S mingw32/mingw-w64-i686-cmake
 $ pacman -S mingw32/mingw-w64-i686-pkg-config
+```
+
+*.notdll.a 作成:
+- 参考: [xxx.dll.a ではなく xxx.notdll.a へ](http://dd-kaihatsu-room.blogspot.jp/2018/04/xxxdlla-xxxnotdlla.html)
+
+```
+$ ./notdll.sh /mingw32/lib/*.dll.a
 ```
 
 事前になきものにする:
