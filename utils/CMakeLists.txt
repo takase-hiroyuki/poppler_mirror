@@ -77,7 +77,7 @@ set(pdfimages_SOURCES ${common_srcs}
   JSInfo.h
 )
 add_executable(pdfimages ${pdfimages_SOURCES})
-target_link_libraries(pdfimages ${common_libs} libjpeg.a)
+target_link_libraries(pdfimages ${common_libs})
 install(TARGETS pdfimages DESTINATION bin)
 install(FILES pdfimages.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 
