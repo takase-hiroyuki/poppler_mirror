@@ -75,5 +75,86 @@ cp /mingw32/lib/pkgconfig/libopenjp2.pc /mingw32/lib/pkgconfig/libopenjpeg.pc
 "C:\msys32\mingw32\i686-w64-mingw32\lib\-libwinpthread.dll.a"
 ```
 
-### `undefined reference to `_imp____acrt_iob_func'` につきまして
+### `undefined reference to '_imp____acrt_iob_func'` につきまして
 
+https://gist.github.com/kenjiuno/c57cabeb6bffef7f5cd7c48e8f5970c5
+
+### cygcheck をすると `lib*.dll` につながっています
+
+```txt
+  C:\msys32\mingw32\bin\libopenjp2-7.dll
+    C:\msys32\mingw32\bin\libgcc_s_dw2-1.dll
+      C:\msys32\mingw32\bin\libwinpthread-1.dll
+```
+
+変に頑張るとこうなりました ↓
+
+```txt
+[ 62%] Linking CXX executable pdfunite.exe
+../libpoppler-79.a(JPEG2000Stream.cc.obj): In function `ZN9JPXStream5closeEv':
+D:/Git/poppler/poppler/JPEG2000Stream.cc:98: undefined reference to `_imp__opj_image_destroy@4'
+D:/Git/poppler/poppler/JPEG2000Stream.cc:98: undefined reference to `_imp__opj_image_destroy@4'
+```
+
+対策編です。
+
+#### ${OpenJPEG_LIBRARIES} にします
+
+`utils/CMakeFiles/pdfunite.dir/build.make` を確認したところ、
+openjp2 だけダイレクトに `/mingw32/lib/libopenjp2.dll.a` を参照していました。
+
+そこで、
+
+```txt
+if (OpenJPEG_FOUND)
+  set(poppler_SRCS ${poppler_SRCS}
+    poppler/JPEG2000Stream.cc
+  )
+  set(poppler_LIBS ${poppler_LIBS} openjp2)
+```
+
+↑ これを ↓ こうしました。
+
+```txt
+if (OpenJPEG_FOUND)
+  set(poppler_SRCS ${poppler_SRCS}
+    poppler/JPEG2000Stream.cc
+  )
+  set(poppler_LIBS ${poppler_LIBS} ${OpenJPEG_LIBRARIES})
+```
+
+#### section .text にしました
+
+インポートライブラリを比較するのに `objdump -p` では判別できませんでしたが…
+
+`nm` で比較したところ、シンボルタイプの相違に気が付きました。
+
+`__imp__opj_decode@12` のシンボルタイプは `T` text section となっています ↓
+
+```txt
+$ nm /mingw32/lib/libopenjp2.dll.a | grep "opj_decode"
+00000000 I __imp__opj_decode_tile_data@20
+00000000 T _opj_decode_tile_data@20
+00000000 I __imp__opj_decode@12
+00000000 T _opj_decode@12
+```
+
+```txt
+$ nm /mingw32/lib/libopenjp2.notdll.a  | grep "opj_decode"
+         U __imp__opj_decode@12
+         U __imp__opj_decode_tile_data@20
+         U _opj_decode
+         U _opj_decode_tile_data
+```
+
+↑ `section .text` を宣言しません。 `__imp__opj_decode@12` は明らかに `U` undefined です。
+
+↓ `section .text` を宣言します。 `__imp__opj_decode@12` は `T` text section に変化しました。
+
+```txt
+$ nm /mingw32/lib/libopenjp2.notdll.a  | grep "opj_decode"
+000000b4 T __imp__opj_decode@12
+000000b0 T __imp__opj_decode_tile_data@20
+         U _opj_decode
+         U _opj_decode_tile_data
+```

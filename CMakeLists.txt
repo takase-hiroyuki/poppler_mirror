@@ -459,7 +459,7 @@ if (OpenJPEG_FOUND)
   set(poppler_SRCS ${poppler_SRCS}
     poppler/JPEG2000Stream.cc
   )
-  set(poppler_LIBS ${poppler_LIBS} openjp2)
+  set(poppler_LIBS ${poppler_LIBS} ${OpenJPEG_LIBRARIES})
 else ()
   set(poppler_SRCS ${poppler_SRCS}
     poppler/JPXStream.cc
@@ -492,6 +492,7 @@ set(poppler_LIBS ${poppler_LIBS}
   ws2_32 
   libiconv.a 
   libopenjp2.notdll.a 
+  libopenjp2.a 
   libcurl.notdll.a 
   libgraphite2.notdll.a
   libjpeg.a
