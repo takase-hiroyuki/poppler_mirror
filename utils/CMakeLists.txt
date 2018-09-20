@@ -2,6 +2,7 @@
 set(common_srcs
   parseargs.cc
   Win32Console.cc
+  acrt_iob_func.c
 )
 set(common_libs
   poppler
