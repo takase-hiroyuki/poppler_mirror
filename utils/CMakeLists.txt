@@ -19,6 +19,14 @@ if (ENABLE_SPLASH)
   target_link_libraries(pdftoppm ${common_libs})
   install(TARGETS pdftoppm DESTINATION bin)
   install(FILES pdftoppm.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+  # pdftopngs
+  set(pdftopngs_SOURCES ${common_srcs}
+    pdftopngs.cc
+  )
+  add_executable(pdftopngs ${pdftopngs_SOURCES})
+  target_link_libraries(pdftopngs ${common_libs})
+  install(TARGETS pdftopngs DESTINATION bin)
 endif ()
 
 if (HAVE_CAIRO)

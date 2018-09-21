@@ -70,6 +70,7 @@ static int sz = 0;
 static GBool useCropBox = gFalse;
 static GBool mono = gFalse;
 static GBool gray = gFalse;
+static GBool ppm = gFalse;
 static GBool png = gFalse;
 static GBool jpeg = gFalse;
 static GBool jpegcmyk = gFalse;
@@ -140,6 +141,8 @@ static const ArgDesc argDesc[] = {
    "generate a monochrome PBM file"},
   {"-gray",   argFlag,     &gray,          0,
    "generate a grayscale PGM file"},
+  {"-ppm",    argFlag,     &ppm,           0,
+   "generate a PPM file"},
 #ifdef ENABLE_LIBPNG
   {"-png",    argFlag,     &png,           0,
    "generate a PNG file"},
@@ -284,8 +287,8 @@ static void savePageSlice(PDFDoc *doc,
   params.tiffCompression.Set(TiffCompressionStr);
 
   if (ppmFile != nullptr) {
-    if (png) {
-      bitmap->writeImgFile(splashFormatPng, ppmFile, x_resolution, y_resolution);
+    if (ppm) {
+      bitmap->writePNMFile(ppmFile);
     } else if (jpeg) {
       bitmap->writeImgFile(splashFormatJpeg, ppmFile, x_resolution, y_resolution, &params);
     } else if (jpegcmyk) {
@@ -293,21 +296,21 @@ static void savePageSlice(PDFDoc *doc,
     } else if (tiff) {
       bitmap->writeImgFile(splashFormatTiff, ppmFile, x_resolution, y_resolution, &params);
     } else {
-      bitmap->writePNMFile(ppmFile);
+      bitmap->writeImgFile(splashFormatPng, ppmFile, x_resolution, y_resolution);
     }
   } else {
 #ifdef _WIN32
     setmode(fileno(stdout), O_BINARY);
 #endif
 
-    if (png) {
-      bitmap->writeImgFile(splashFormatPng, stdout, x_resolution, y_resolution);
+    if (ppm) {
+      bitmap->writePNMFile(stdout);
     } else if (jpeg) {
       bitmap->writeImgFile(splashFormatJpeg, stdout, x_resolution, y_resolution, &params);
     } else if (tiff) {
       bitmap->writeImgFile(splashFormatTiff, stdout, x_resolution, y_resolution, &params);
     } else {
-      bitmap->writePNMFile(stdout);
+      bitmap->writeImgFile(splashFormatPng, stdout, x_resolution, y_resolution);
     }
   }
 }
@@ -355,7 +358,7 @@ static void processPageJobs() {
     
     savePageSlice(pageJob.doc, splashOut, pageJob.pg, x, y, w, h, pageJob.pg_w, pageJob.pg_h, pageJob.ppmFile);
     
-    printf("%d\t%s\n", pageJob.pg, pageJob.ppmFile);
+    printf("image" "\t" "%d" "\t" "%s" "\n", pageJob.pg, pageJob.ppmFile);
 
     delete splashOut;
     delete[] pageJob.ppmFile;
@@ -396,11 +399,11 @@ int main(int argc, char *argv[]) {
     y_resolution = resolution;
   }
   if (!ok || argc > 3 || printVersion || printHelp) {
-    fprintf(stderr, "pdftoppm version %s\n", PACKAGE_VERSION);
+    fprintf(stderr, "pdftopngs version %s\n", PACKAGE_VERSION);
     fprintf(stderr, "%s\n", popplerCopyright);
     fprintf(stderr, "%s\n", xpdfCopyright);
     if (!printVersion) {
-      printUsage("pdftoppm", "[PDF-file [PPM-file-prefix]]", argDesc);
+      printUsage("pdftopngs", "[PDF-file [PNG-file-prefix]]", argDesc);
     }
     if (printVersion || printHelp)
       exitCode = 0;
@@ -516,7 +519,7 @@ int main(int argc, char *argv[]) {
     paperColor[2] = 255;
   }
 
-  printf("min\t%d\n" "max\t%d\n", firstPage, lastPage);
+  printf("first" "\t" "%d" "\n" "last" "\t" "%d" "\n", firstPage, lastPage);
   
 #ifndef UTILS_USE_PTHREADS
 
@@ -572,13 +575,13 @@ int main(int argc, char *argv[]) {
       pg_h = tmp;
     }
     if (ppmRoot != nullptr) {
-      const char *ext = png ? "png" : (jpeg || jpegcmyk) ? "jpg" : tiff ? "tif" : mono ? "pbm" : gray ? "pgm" : "ppm";
+      const char *ext = (jpeg || jpegcmyk) ? "jpg" : tiff ? "tif" : png ? "png" : mono ? "pbm" : gray ? "pgm" : ppm ? "ppm" : "png";
       if (singleFile) {
         ppmFile = new char[strlen(ppmRoot) + 1 + strlen(ext) + 1];
         sprintf(ppmFile, "%s.%s", ppmRoot, ext);
       } else {
         ppmFile = new char[strlen(ppmRoot) + 1 + pg_num_len + 1 + strlen(ext) + 1];
-        sprintf(ppmFile, "%s-%0*d.%s", ppmRoot, pg_num_len, pg, ext);
+        sprintf(ppmFile, "%s%0*d.%s", ppmRoot, pg_num_len, pg, ext);
       }
     } else {
       ppmFile = nullptr;
@@ -587,7 +590,7 @@ int main(int argc, char *argv[]) {
     // process job in main thread
     savePageSlice(doc, splashOut, pg, param_x, param_y, param_w, param_h, pg_w, pg_h, ppmFile);
 
-    printf("%d\t%s\n", pg, ppmFile);
+    printf("image" "\t" "%d" "\t" "%s" "\n", pg, ppmFile);
 
     delete[] ppmFile;
 #else
