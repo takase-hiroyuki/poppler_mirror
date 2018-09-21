@@ -77,7 +77,7 @@ cp /mingw32/lib/pkgconfig/libopenjp2.pc /mingw32/lib/pkgconfig/libopenjpeg.pc
 
 ### `undefined reference to '_imp____acrt_iob_func'` につきまして
 
-https://gist.github.com/kenjiuno/c57cabeb6bffef7f5cd7c48e8f5970c5
+https://github.com/HiraokaHyperTools/libacrt_iob_func
 
 ### cygcheck をすると `lib*.dll` につながっています
 
