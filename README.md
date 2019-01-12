@@ -1,4 +1,4 @@
-﻿# poppler 自炊につきまして
+# poppler 自炊につきまして
 
 Windows でのみ有用です。
 MSYS2 を使用します。
@@ -32,7 +32,7 @@ pacman -S mingw32/mingw-w64-i686-jsoncpp
 
 ### openjpeg ≠ openjpeg2
 
-CMakeLists.txt にて、あたかも `OpenJPEG` が `openjpeg2` と同一であるかのような仮定がなされているので、その対策です。
+CMakeLists.txt にて、あたかも `OpenJPEG` が `openjpeg2` と同一であるかのような仮定がなされているので、その修正です。
 
 問題の箇所:
 
@@ -62,13 +62,17 @@ cp /mingw32/lib/pkgconfig/libopenjp2.pc /mingw32/lib/pkgconfig/libopenjpeg.pc
 
 ### `*.notdll.a` 作成
 
+`__declspec(dllimport)` プロトタイプ宣言をしているライブラリ向けに、
+スタティックリンクライブラリを使用するようなリダイレクションライブラリを提供します。
+
 ```sh
 ./notdll.sh /mingw32/lib/*.dll.a
 ```
 
 参考: [xxx.dll.a ではなく xxx.notdll.a へ](http://dd-kaihatsu-room.blogspot.jp/2018/04/xxxdlla-xxxnotdlla.html)
 
-事前になきものにする:
+ダイナミックリンクができないように、事前になきものにする:
+
 ```
 "C:\msys32\mingw32\lib\gcc\i686-w64-mingw32\6.2.0\-libstdc++.dll.a"
 "C:\msys32\mingw32\i686-w64-mingw32\lib\-libpthread.dll.a" 
@@ -76,6 +80,22 @@ cp /mingw32/lib/pkgconfig/libopenjp2.pc /mingw32/lib/pkgconfig/libopenjpeg.pc
 ```
 
 ### `undefined reference to '_imp____acrt_iob_func'` につきまして
+
+Visual Studio 2015 以降の C/C++ で `stdin` `stdout` `stderr` を参照し `マルチスレッド DLL (/MD)` で .lib をビルド。
+この .lib を MinGW などで使用するとこの問題が起こります。
+
+`__acrt_iob_func` は、以下のような平易な実装らしいのですが。
+
+```c
+FILE *__acrt_iob_func(int handle) {
+    switch (handle) {
+        case 0: return stdin;
+        case 1: return stdout;
+        case 2: return stderr;
+    }
+    return NULL;
+}
+```
 
 https://github.com/HiraokaHyperTools/libacrt_iob_func
 
@@ -125,6 +145,10 @@ if (OpenJPEG_FOUND)
 
 #### section .text にしました
 
+昔の `.notdll.a` の生成方法に不備があったという話です。
+
+`__imp__opj_decode` などのインポートライブラリ関数は `T` text section 属性が付いていないと無視するリンカがあります。
+
 インポートライブラリを比較するのに `objdump -p` では判別できませんでしたが…
 
 `nm` で比較したところ、シンボルタイプの相違に気が付きました。
@@ -142,7 +166,8 @@ $ nm /mingw32/lib/libopenjp2.dll.a | grep "opj_decode"
 ```txt
 $ nm /mingw32/lib/libopenjp2.notdll.a  | grep "opj_decode"
          U __imp__opj_decode@12
-         U __imp__opj_decode_tile_data@20
+         U 
+         _tile_data@20
          U _opj_decode
          U _opj_decode_tile_data
 ```
