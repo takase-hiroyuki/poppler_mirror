@@ -71,6 +71,8 @@ cp /mingw32/lib/pkgconfig/libopenjp2.pc /mingw32/lib/pkgconfig/libopenjpeg.pc
 
 参考: [xxx.dll.a ではなく xxx.notdll.a へ](http://dd-kaihatsu-room.blogspot.jp/2018/04/xxxdlla-xxxnotdlla.html)
 
+### libgcc / libstdc++ へのリンク
+
 ダイナミックリンクができないように、事前になきものにする:
 
 ```
