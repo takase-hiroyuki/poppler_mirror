@@ -26,3 +26,7 @@ steps:
 - task: CMake@1
   inputs:
     cmakeArgs: '-G "MSYS Makefiles"  -D BUILD_CPP_TESTS:BOOL=OFF -D BUILD_GTK_TESTS:BOOL=OFF -D BUILD_QT5_TESTS:BOOL=OFF -D ENABLE_QT5:BOOL=OFF -D ENABLE_GLIB:BOOL=OFF'
+
+- task: CmdLine@2
+  inputs:
+    script: 'make'
