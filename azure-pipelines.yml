@@ -1,0 +1,28 @@
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+trigger:
+- fix-1
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: CmdLine@2
+  inputs:
+    script: |
+      pacman -S mingw32/mingw-w64-i686-freetype
+      pacman -S mingw32/mingw-w64-i686-gcc
+      pacman -S mingw32/mingw-w64-i686-make
+      pacman -S msys/make
+      pacman -S mingw32/mingw-w64-i686-libjpeg-turbo
+      pacman -S mingw32/mingw-w64-i686-openjpeg2
+      pacman -S mingw32/mingw-w64-i686-cmake
+      pacman -S mingw32/mingw-w64-i686-pkg-config
+      pacman -S mingw32/mingw-w64-i686-jsoncpp
+
+- task: CMake@1
+  inputs:
+    cmakeArgs: '-G "MSYS Makefiles"  -D BUILD_CPP_TESTS:BOOL=OFF -D BUILD_GTK_TESTS:BOOL=OFF -D BUILD_QT5_TESTS:BOOL=OFF -D ENABLE_QT5:BOOL=OFF -D ENABLE_GLIB:BOOL=OFF'
